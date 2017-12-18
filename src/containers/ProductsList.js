@@ -1,22 +1,27 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import React, { Component } from 'react';
 
 import ProductsListItem from '../components/ProductsListItem';
+import { fetchProducts } from '../modules/products';
+import store from '../store';
 
-const ProductsList = props => (
-  <div>
-    <input type="text" onChange={props.setFilter} />
-    <p>TODO: Search bar</p>
-    Products list length: { props.products.length }
+class ProductsList extends Component {
+  componentDidMount() {
+    store.dispatch(fetchProducts())
+  }
+  render() {
+    console.log(this.props.products);
+    
+    return (
+      <div>
+        <input type="text" onChange={this.props.setFilter} value={this.props.filter} />
+        <p>TODO: Search bar</p>
+        Products list length: {this.props.products.length}
+        {this.props.products.map(product => (
+          <ProductsListItem key={product._id} product={product} />))
+        }
+      </div>
+    )
+  }
+}
 
-    { props.products.map(product => (
-        <ProductsListItem key={product._id} product={product} />))
-    }
-  </div>
-)
-
-const mapDispatchToProps = dispatch => bindActionCreators({
-}, dispatch)
-
-export default connect(null, mapDispatchToProps)(ProductsList)
+export default ProductsList

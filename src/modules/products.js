@@ -1,9 +1,8 @@
-import { throttle } from 'lodash-es';
 export const FETCH = 'products/FETCH';
 export const FETCH_BY_ID = 'products/FETCH_BY_ID';
 export const FETCH_SUCCESS = 'products/FETCH_SUCCESS';
 export const FETCH_ERROR = 'products/FETCH_ERROR';
-export const FILTER = 'product/FILTER';
+export const FILTER = 'products/FILTER';
 
 const initialState = {
   isRequesting: false,
@@ -30,7 +29,10 @@ export default (state = initialState, action) => {
         ...state,
         isRequesting: false,
         list: action.payload,
-        byId: action.payload.reduce((products, product) => ({ ...products, [product.id]: product }), {})
+        byId: action.payload.reduce((products, product) =>
+          ({ ...products, [product._id]: product }),
+          {...state.byId}
+        )
       }
     case FETCH_ERROR:
       return {
@@ -52,36 +54,40 @@ export const fetchProducts = () => {
   return (dispatch, getState) => {
     dispatch({ type: FETCH });
     const state = getState().products;
-    console.log(state.filter);
-    fetchApiProducts(dispatch)
-      .then((result) => {
+    fetchApiProducts(dispatch, { filter: state.filter })
+      .then(products => {
         dispatch({
           type: FETCH_SUCCESS,
-          payload: result
+          payload: products
         })
       })
   }
 }
 
-export const filterProducts = throttle((filter) => {
-  console.log('triggered!', filter)
+export const filterProducts = (filter) => {
   return (dispatch) => {
     dispatch({ type: FILTER, payload: filter })
-    fetchApiProducts(dispatch, {filter})
-      .then((result) => {
-        dispatch({
-          type: FETCH_SUCCESS,
-          payload: result
-        })
-      })
+    dispatch(fetchProducts())
   }
-}, 100)
+}
 
-function fetchApiProducts(dispatch, params) {
+export const fetchProductById = function(id) {
+  return dispatch => {
+    dispatch({ type: FETCH_BY_ID })
+    fetchApiProducts(dispatch, { id })
+      .then(product => dispatch({
+        type: FETCH_SUCCESS,
+        payload: product
+      }))
+  }
+}
+
+function fetchApiProducts(dispatch, params = {}) {
   const filterEmptyParams = ([param, value]) => !!value
-  const paramValuePairs = Object.entries(params || {}).filter(filterEmptyParams);
+  const paramValuePairs = Object.entries(params).filter(filterEmptyParams)
   const urlParams = new URLSearchParams(paramValuePairs)
-  return fetch(`http://localhost:3004/nutrients/${urlParams && '?' + urlParams}`)
+  const urlParamsString = paramValuePairs.length ? '?' + urlParams : ''
+  return fetch(`http://localhost:3004/nutrients/${urlParamsString}`)
     .then((response) => response.json())
     .catch((error) => {
       dispatch({

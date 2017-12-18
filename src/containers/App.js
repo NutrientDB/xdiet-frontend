@@ -16,7 +16,7 @@ const App = () => (
     <main>
       <Route exact path="/" component={Home} />
       <Route exact path="/about-us" component={About} />
-      <Route exact path="/products" component={Products} />
+      <Route match path="/products" component={Products} />
     </main>
   </div>
 )

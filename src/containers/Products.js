@@ -1,30 +1,22 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 
-import { fetchProducts, filterProducts } from '../modules/products';
-import store from '../store';
+import { filterProducts } from '../modules/products';
 import Product from './Product';
 import ProductsList from './ProductsList';
 
-class Products extends Component {
-  componentDidMount() {
-    store.dispatch(fetchProducts())
-  }
-  render() {
-    const ProductsListRender = () => <ProductsList {...this.props} />
-    return (
-      <Switch>
-        <Route exact path='/products' render={ProductsListRender} />
-        <Route path='/products/:id' component={Product}/>
-      </Switch>
-    )
-  }
-}
+const Products = props => (
+  <Switch>
+    <Route exact path='/products' render={() => <ProductsList {...props} />} />
+    <Route path='/products/:id' render={(match) => <Product {...props} {...match} />} />
+  </Switch>
+)
 
 const mapStateToProps = state => ({
-  products: state.products.list
+  products: state.products.list,
+  filter: state.products.filter
 })
 
 const mapDispatchToProps = dispatch => {
